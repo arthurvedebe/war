@@ -278,6 +278,7 @@ export default function GameScreen() {
     switchTurn,
     moveUnitGrid,
     attackUnitGrid,
+    castSpell,
     resetGame,
     player1Faction,
     player2Faction,
@@ -343,6 +344,48 @@ export default function GameScreen() {
 
   // Mode d'action tactique actif (Déplacement vs Attaque)
   const [actionMode, setActionMode] = useState<'move' | 'attack'>('move');
+
+  const [selectedSpellId, setSelectedSpellId] = useState<string | null>(null);
+  const [floatingTexts, setFloatingTexts] = useState<Array<{ id: string, x: number, y: number, text: string, color: string }>>([]);
+
+  const triggerFloatingText = (gridX: number, gridY: number, text: string, color: string) => {
+    const textId = `${Date.now()}-${Math.random()}`;
+    const x = (gridX + 0.5) * cellWidth;
+    const y = (gridY + 0.5) * cellHeight - 15;
+    setFloatingTexts((prev) => [...prev, { id: textId, x, y, text, color }]);
+    setTimeout(() => {
+      setFloatingTexts((prev) => prev.filter((t) => t.id !== textId));
+    }, 1200);
+  };
+
+  const activePlayerFaction = currentTurn === 'player1' ? player1Faction : player2Faction;
+
+  const spellsData = useMemo(() => {
+    switch (activePlayerFaction) {
+      case 'golems':
+        return [
+          { id: 'golem_shield', name: 'Rune de Terre 🧱', cost: 1, desc: 'Soigne un allié de +40 PV', targetType: 'friendly' },
+          { id: 'golem_shockwave', name: 'Séisme Majeur 💥', cost: 2, desc: 'Inflige 25 dégâts à un ennemi', targetType: 'enemy' },
+        ];
+      case 'sylvains':
+        return [
+          { id: 'sylvain_heal', name: 'Rosée Curative 🍃', cost: 1, desc: 'Soigne un allié de +40 PV', targetType: 'friendly' },
+          { id: 'sylvain_haste', name: 'Vent de Faille 💨', cost: 1, desc: 'Réinitialise le déplacement d\'un allié', targetType: 'friendly' },
+        ];
+      case 'technos':
+        return [
+          { id: 'techno_repair', name: 'Nanobots 🔧', cost: 1, desc: 'Soigne un allié de +35 PV', targetType: 'friendly' },
+          { id: 'techno_boost', name: 'Surcharge ⚡', cost: 2, desc: 'Réinitialise complètement les actions d\'un allié', targetType: 'friendly' },
+        ];
+      case 'necro':
+        return [
+          { id: 'necro_drain', name: 'Siphon d\'Âme 🔮', cost: 1, desc: 'Inflige 20 dégâts à un ennemi et soigne notre Héros de +20 PV', targetType: 'enemy' },
+          { id: 'necro_curse', name: 'Malédiction 💀', cost: 1, desc: 'Inflige 15 dégâts et étourdit un ennemi pour 1 tour', targetType: 'enemy' },
+        ];
+      default:
+        return [];
+    }
+  }, [activePlayerFaction]);
 
   // Valeurs partagées Reanimated créées dynamiquement pour animer la position des unités
   const unitPositionsRef = useRef<{
@@ -549,6 +592,61 @@ export default function GameScreen() {
   const handleCellTap = (col: number, row: number) => {
     if (winner) return;
 
+    // Si un sort est sélectionné, on essaie de le lancer sur la case cliquée
+    if (selectedSpellId) {
+      const targetUnit = units.find((u) => u.hp > 0 && u.position.x === col && u.position.y === row);
+      if (!targetUnit) {
+        setSelectedSpellId(null);
+        return;
+      }
+
+      const spell = spellsData.find((s) => s.id === selectedSpellId);
+      if (!spell) return;
+
+      const isFriendly = targetUnit.player === currentTurn;
+      if (spell.targetType === 'friendly' && !isFriendly) return;
+      if (spell.targetType === 'enemy' && isFriendly) return;
+
+      const cost = spell.id === 'golem_shockwave' || spell.id === 'techno_boost' ? 2 : 1;
+      if (actionPoints < cost) return;
+
+      const beforeTarget = targetUnit;
+      const success = castSpell(selectedSpellId, targetUnit.id);
+      if (success) {
+        playSfx('laser');
+        
+        // Obtenir le nouvel état du store
+        const updatedTarget = useGameStore.getState().units.find((u) => u.id === targetUnit.id);
+
+        let text = spell.name.split(' ')[0].toUpperCase();
+        let color = '#fff';
+        if (spell.id === 'golem_shield' || spell.id === 'sylvain_heal' || spell.id === 'techno_repair') {
+          text = `SOIGNÉ +${updatedTarget ? updatedTarget.hp - beforeTarget.hp : 40} 💚`;
+          color = '#10b981';
+        } else if (spell.id === 'golem_shockwave' || spell.id === 'necro_drain' || spell.id === 'necro_curse') {
+          text = `DÉGÂTS -${beforeTarget.hp - (updatedTarget ? updatedTarget.hp : 0)} 💥`;
+          color = '#ef4444';
+          if (spell.id === 'necro_curse') text = 'MAUDIT! 💀';
+        } else if (spell.id === 'sylvain_haste' || spell.id === 'techno_boost') {
+          text = 'SURCHARGE ⚡';
+          color = '#eab308';
+        }
+
+        triggerFloatingText(col, row, text, color);
+
+        // Effet de vol de vie du sort siphon pour Nécro
+        if (spell.id === 'necro_drain') {
+          const myHeroBefore = units.find(u => u.player === currentTurn && u.unitType === 'hero');
+          const myHeroAfter = useGameStore.getState().units.find(u => u.player === currentTurn && u.unitType === 'hero');
+          if (myHeroBefore && myHeroAfter && myHeroAfter.hp > myHeroBefore.hp) {
+            triggerFloatingText(myHeroBefore.position.x, myHeroBefore.position.y, `+${myHeroAfter.hp - myHeroBefore.hp} PV 💜`, "#a855f7");
+          }
+        }
+      }
+      setSelectedSpellId(null);
+      return;
+    }
+
     if (!selectedUnitId) return;
     const unit = units.find((u) => u.id === selectedUnitId);
     if (!unit || unit.hp <= 0 || unit.player !== currentTurn) return;
@@ -573,9 +671,14 @@ export default function GameScreen() {
         moveUnitGrid(unit.id, col, row);
       }
     } else if (actionMode === 'attack') {
-      // Cible ennemie ?
+      // Cible
       const targetUnit = units.find((u) => u.hp > 0 && u.position.x === col && u.position.y === row);
-      if (!targetUnit || targetUnit.player === currentTurn) return;
+      if (!targetUnit) return;
+
+      const isFriendlyTarget = targetUnit.player === currentTurn;
+      const canHeal = (unit.templateId === 'sylvain_ranged_sap' || unit.templateId === 'sylvain_hero_gaia');
+
+      if (isFriendlyTarget && !canHeal) return;
 
       // Portée d'attaque
       const range = getUnitTemplateRanges(unit).attack;
@@ -598,6 +701,7 @@ export default function GameScreen() {
           finalDamage *= 2;
         }
 
+        const beforeTarget = targetUnit;
         const success = attackUnitGrid(unit.id, targetUnit.id, finalDamage);
         if (success) {
           triggerAttackAnimation(
@@ -609,6 +713,34 @@ export default function GameScreen() {
             unit.unitType,
             isRanged
           );
+
+          // Récupérer les états après attaque
+          const updatedTarget = useGameStore.getState().units.find(u => u.id === targetUnit.id);
+          const updatedAttacker = useGameStore.getState().units.find(u => u.id === unit.id);
+
+          // Résurrection
+          if (updatedTarget && !beforeTarget.hasResurrected && updatedTarget.hasResurrected) {
+            triggerFloatingText(col, row, "RESSUSCITÉ! 💀", "#a855f7");
+          }
+
+          // Rage
+          const wasEnraged = beforeTarget.factionId === 'golems' && (beforeTarget.hp / beforeTarget.maxHp < 0.5) && 
+            (beforeTarget.templateId === 'golem_hero_granite' || beforeTarget.templateId === 'golem_heavy_obsidian');
+          const isEnraged = updatedTarget && updatedTarget.factionId === 'golems' && (updatedTarget.hp / updatedTarget.maxHp < 0.5) && 
+            (updatedTarget.templateId === 'golem_hero_granite' || updatedTarget.templateId === 'golem_heavy_obsidian');
+          if (updatedTarget && !wasEnraged && isEnraged) {
+            triggerFloatingText(col, row, "RAGE! 😡", "#ef4444");
+          }
+
+          // Vol de vie (Attaquant)
+          if (updatedAttacker && updatedAttacker.hp > unit.hp) {
+            triggerFloatingText(unit.position.x, unit.position.y, `+${updatedAttacker.hp - unit.hp} PV 💜`, "#a855f7");
+          }
+
+          // Soin (Cible alliée)
+          if (updatedTarget && updatedTarget.player === currentTurn && updatedTarget.hp > beforeTarget.hp) {
+            triggerFloatingText(col, row, `+${updatedTarget.hp - beforeTarget.hp} PV 💚`, "#10b981");
+          }
         }
       }
     }
@@ -920,6 +1052,11 @@ export default function GameScreen() {
               />
             );
           })}
+
+          {/* Textes flottants d'effets superposés */}
+          {floatingTexts.map((txt) => (
+            <FloatingTextItem key={txt.id} item={txt} />
+          ))}
         </View>
       </GestureDetector>
 
@@ -993,6 +1130,46 @@ export default function GameScreen() {
                 🎯 ATT {(selectedUnit.actionsPerformed || 0) >= 2 ? '❌' : '✓'}
               </Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Sorts de Faction */}
+        {spellsData.length > 0 && (
+          <View style={styles.spellsSection}>
+            <Text style={styles.spellsTitle}>
+              Sorts de Faction ({activePlayerFaction === 'golems' ? 'Golems 🧱' : activePlayerFaction === 'sylvains' ? 'Sylvains 🍃' : activePlayerFaction === 'technos' ? 'Technos ⚡' : 'Nécro-Cybers 💀'}) :
+            </Text>
+            {selectedSpellId && (
+              <Text style={styles.spellTargetTip}>
+                👉 Cliquez sur une unité cible sur le plateau...
+              </Text>
+            )}
+            <View style={styles.spellsRow}>
+              {spellsData.map((spell) => {
+                const cost = spell.id === 'golem_shockwave' || spell.id === 'techno_boost' ? 2 : 1;
+                const isSelected = selectedSpellId === spell.id;
+                const canAfford = actionPoints >= cost;
+
+                return (
+                  <TouchableOpacity
+                    key={spell.id}
+                    style={[
+                      styles.spellButton,
+                      isSelected ? styles.spellButtonSelected : styles.spellButtonInactive,
+                      !canAfford && styles.spellButtonDisabled,
+                    ]}
+                    disabled={!canAfford}
+                    onPress={() => {
+                      playSfx('click');
+                      setSelectedSpellId(isSelected ? null : spell.id);
+                    }}
+                  >
+                    <Text style={styles.spellNameText}>{spell.name}</Text>
+                    <Text style={styles.spellCostText}>⚡ {cost} PA</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
         )}
 
@@ -1097,31 +1274,100 @@ function UnitHealthBar({
   const isP1 = unit.player === 'player1';
   const healthPct = (unit.hp / unit.maxHp) * 100;
 
+  const isEnraged = unit.factionId === 'golems' && (unit.hp / unit.maxHp < 0.5) && 
+                    (unit.templateId === 'golem_hero_granite' || unit.templateId === 'golem_heavy_obsidian');
+
   const animatedStyle = useAnimatedStyle(() => {
     if (!sharedPos) return { display: 'none' };
     return {
       position: 'absolute',
-      left: sharedPos.x.value - 22,
-      top: sharedPos.y.value - cellHeight * 0.45,
-      width: 44,
-      height: 5,
-      backgroundColor: 'rgba(0,0,0,0.6)',
-      borderRadius: 2.5,
-      borderWidth: 0.5,
-      borderColor: '#333',
-      overflow: 'hidden',
+      left: sharedPos.x.value - 35,
+      top: sharedPos.y.value - cellHeight * 0.58, // Légèrement plus haut pour accueillir les badges
+      width: 70,
+      alignItems: 'center',
     };
   });
 
   return (
     <Animated.View style={animatedStyle}>
+      {/* Badges d'état tactiques */}
+      <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 2 }}>
+        {isEnraged && (
+          <Text style={{ color: '#ef4444', fontSize: 8, fontWeight: 'bold', backgroundColor: 'rgba(15, 23, 42, 0.85)', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 3, overflow: 'hidden', marginBottom: 1 }}>
+            😡 RAGE
+          </Text>
+        )}
+        {unit.isStunned && (
+          <Text style={{ color: '#a855f7', fontSize: 8, fontWeight: 'bold', backgroundColor: 'rgba(15, 23, 42, 0.85)', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 3, overflow: 'hidden', marginBottom: 1 }}>
+            💤 PARALYSÉ
+          </Text>
+        )}
+        {unit.hasResurrected && !unit.isStunned && (
+          <Text style={{ color: '#c084fc', fontSize: 8, fontWeight: 'bold', backgroundColor: 'rgba(15, 23, 42, 0.85)', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 3, overflow: 'hidden', marginBottom: 1 }}>
+            💀 RESSUSCITÉ
+          </Text>
+        )}
+      </View>
+
+      {/* Barre de vie */}
       <View
         style={{
-          width: `${healthPct}%`,
-          height: '100%',
-          backgroundColor: isP1 ? '#ef4444' : '#3b82f6',
+          width: 40,
+          height: 5,
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          borderRadius: 2.5,
+          borderWidth: 0.5,
+          borderColor: '#333',
+          overflow: 'hidden',
         }}
-      />
+      >
+        <View
+          style={{
+            width: `${healthPct}%`,
+            height: '100%',
+            backgroundColor: isP1 ? '#ef4444' : '#3b82f6',
+          }}
+        />
+      </View>
+    </Animated.View>
+  );
+}
+
+function FloatingTextItem({ item }: { item: { text: string; x: number; y: number; color: string } }) {
+  const animY = useSharedValue(item.y);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    animY.value = withTiming(item.y - 45, { duration: 1100 });
+    opacity.value = withTiming(0, { duration: 1100 });
+  }, [item.y]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      position: 'absolute',
+      left: item.x - 75,
+      top: animY.value,
+      width: 150,
+      alignItems: 'center',
+      opacity: opacity.value,
+      pointerEvents: 'none',
+    };
+  });
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Text
+        style={{
+          color: item.color,
+          fontWeight: 'bold',
+          fontSize: 11,
+          textShadowColor: 'rgba(0, 0, 0, 0.95)',
+          textShadowRadius: 3,
+          textShadowOffset: { width: 1, height: 1 },
+        }}
+      >
+        {item.text}
+      </Text>
     </Animated.View>
   );
 }
@@ -1745,5 +1991,61 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#38bdf8',
     borderRadius: 3,
+  },
+  spellsSection: {
+    marginVertical: 4,
+    backgroundColor: '#111b2e',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  spellsTitle: {
+    color: '#94a3b8',
+    fontSize: 9,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  spellTargetTip: {
+    color: '#38bdf8',
+    fontSize: 8.5,
+    marginBottom: 4,
+    fontStyle: 'italic',
+  },
+  spellsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  spellButton: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
+  spellButtonSelected: {
+    backgroundColor: 'rgba(168, 85, 247, 0.25)',
+    borderColor: '#c084fc',
+  },
+  spellButtonInactive: {
+    backgroundColor: '#1e293b',
+    borderColor: '#475569',
+  },
+  spellButtonDisabled: {
+    opacity: 0.3,
+  },
+  spellNameText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  spellCostText: {
+    color: '#38bdf8',
+    fontSize: 8.5,
+    fontWeight: 'bold',
+    marginTop: 1,
   },
 });

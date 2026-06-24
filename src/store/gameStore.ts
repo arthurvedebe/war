@@ -479,6 +479,7 @@ interface GameState {
   buyMusic: (musicId: string, cost: number) => boolean;
   setMenuMusic: (musicId: string) => void;
   setActivePreviewTrackId: (id: string | null) => void;
+  castSpell: (spellId: string, targetId?: string) => boolean;
   resetGame: () => void;
   resetProfile: () => void;
   claimProgressionReward: (milestoneId: string, gold: number) => void;
@@ -754,14 +755,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     const attacker = units.find(u => u.id === attackerId);
     if (!attacker || (attacker.actionsPerformed || 0) >= 2) return false;
 
-    get().damageUnit(targetId, damage);
+    const target = units.find(u => u.id === targetId);
+    const isFriendly = attacker && target && attacker.player === target.player;
+
+    if (isFriendly) {
+      get().healUnit(targetId, damage); // Utilise les dégâts comme montant de soin
+    } else {
+      get().damageUnit(targetId, damage);
+    }
 
     const currentUnits = get().units;
     const updatedUnits = currentUnits.map((u) => {
       if (u.id === attackerId) {
         let hp = u.hp;
-        // Vol de vie pour la faction necro (50% de lifesteal)
-        if (u.factionId === 'necro') {
+        // Vol de vie pour la faction necro (50% de lifesteal), uniquement sur cible ennemie
+        if (u.factionId === 'necro' && !isFriendly) {
           const healAmount = Math.round(damage * 0.5);
           hp = Math.min(u.maxHp, u.hp + healAmount);
         }
@@ -894,6 +902,95 @@ export const useGameStore = create<GameState>((set, get) => ({
       return u;
     });
     set({ units: updatedUnits });
+  },
+
+  castSpell: (spellId: string, targetId?: string) => {
+    const { actionPoints, units, currentTurn } = get();
+    // Déterminer le coût en AP
+    let cost = 1;
+    if (spellId === 'golem_shockwave' || spellId === 'techno_boost') cost = 2;
+
+    if (actionPoints < cost) return false;
+
+    let updatedUnits = [...units];
+
+    if (targetId) {
+      const target = units.find(u => u.id === targetId);
+      if (!target) return false;
+
+      updatedUnits = units.map((u) => {
+        if (u.id === targetId) {
+          if (spellId === 'golem_shield') {
+            return { ...u, hp: Math.min(u.maxHp, u.hp + 40) };
+          }
+          if (spellId === 'golem_shockwave') {
+            return { ...u, hp: Math.max(0, u.hp - 25) };
+          }
+          if (spellId === 'sylvain_heal') {
+            return { ...u, hp: Math.min(u.maxHp, u.hp + 40) };
+          }
+          if (spellId === 'sylvain_haste') {
+            return { 
+              ...u, 
+              hasMoved: false, 
+              actionsPerformed: Math.max(0, (u.actionsPerformed || 0) - 1) 
+            };
+          }
+          if (spellId === 'techno_repair') {
+            return { ...u, hp: Math.min(u.maxHp, u.hp + 35) };
+          }
+          if (spellId === 'techno_boost') {
+            // Surcharge : réinitialise complètement l'unité alliée pour qu'elle puisse agir
+            return { ...u, hasMoved: false, hasAttacked: false, actionsPerformed: 0 };
+          }
+          if (spellId === 'necro_drain') {
+            return { ...u, hp: Math.max(0, u.hp - 20) };
+          }
+          if (spellId === 'necro_curse') {
+            return { ...u, hp: Math.max(0, u.hp - 15), isStunned: true };
+          }
+        }
+        return u;
+      });
+
+      // Effet spécial de siphon d'âme pour Nécro : soigne le Héros allié
+      if (spellId === 'necro_drain') {
+        const myHero = updatedUnits.find(u => u.player === currentTurn && u.unitType === 'hero' && u.hp > 0);
+        if (myHero) {
+          updatedUnits = updatedUnits.map(u => u.id === myHero.id ? { ...u, hp: Math.min(u.maxHp, u.hp + 20) } : u);
+        }
+      }
+    }
+
+    const nextActionPoints = actionPoints - cost;
+
+    // Détection de fin de tour automatique
+    const activePlayerUnits = updatedUnits.filter(u => u.player === currentTurn && u.hp > 0);
+    const allExhausted = activePlayerUnits.length > 0 && activePlayerUnits.every(u => (u.actionsPerformed || 0) >= 2);
+
+    if (nextActionPoints <= 0 || allExhausted) {
+      const nextTurn = currentTurn === 'player1' ? 'player2' : 'player1';
+      const resetUnits = updatedUnits.map((u) => {
+        if (u.player === nextTurn) {
+          if (u.isStunned) {
+            return { ...u, isStunned: false, hasMoved: true, hasAttacked: true, actionsPerformed: 2 };
+          }
+          return { ...u, hasMoved: false, hasAttacked: false, actionsPerformed: 0 };
+        }
+        return u;
+      });
+      set({
+        units: resetUnits,
+        currentTurn: nextTurn,
+        actionPoints: 3,
+      });
+    } else {
+      set({
+        units: updatedUnits,
+        actionPoints: nextActionPoints,
+      });
+    }
+    return true;
   },
 
   addGold: (amount: number) => {

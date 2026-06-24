@@ -109,7 +109,6 @@ export default function HomeScreen() {
         }}
       >
         <Text style={styles.playButtonText}>LANCER LE COMBAT TACTIQUE</Text>
-        <Text style={styles.playButtonSubtext}>Tour par tour • Grille 9x7 • 2 Actions/tour</Text>
       </TouchableOpacity>
 
       {/* 3. Codex des Armées (Races & Troupes) */}
