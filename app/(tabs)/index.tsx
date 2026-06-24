@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router';
 import { useGameStore, PLAYABLE_FACTIONS, FACTION_UNIT_TEMPLATES, XP_THRESHOLDS } from '../../src/store/gameStore';
 import { FactionType } from '../../src/types';
 import UnitSkinPreview from '../../src/components/UnitSkinPreview';
+import { playSfx } from '../../src/utils/sfx';
 
 const PROGRESSION_MILESTONES = [
   { id: 'milestone-200', xpNeeded: XP_THRESHOLDS[0], goldReward: 100, label: `Niveau 2 (${XP_THRESHOLDS[0]} XP)` },
@@ -80,7 +81,10 @@ export default function HomeScreen() {
                   ) : canClaim ? (
                     <TouchableOpacity
                       style={styles.claimButton}
-                      onPress={() => claimProgressionReward(milestone.id, milestone.goldReward)}
+                      onPress={() => {
+                        playSfx('click');
+                        claimProgressionReward(milestone.id, milestone.goldReward);
+                      }}
                     >
                       <Text style={styles.claimButtonText}>RÉCLAMER</Text>
                     </TouchableOpacity>
@@ -99,7 +103,10 @@ export default function HomeScreen() {
       {/* 2. Bouton Commencer la Partie (CTA Agrandi) */}
       <TouchableOpacity
         style={styles.playButton}
-        onPress={() => router.push('/game')}
+        onPress={() => {
+          playSfx('click');
+          router.push('/game');
+        }}
       >
         <Text style={styles.playButtonText}>LANCER LE COMBAT TACTIQUE</Text>
         <Text style={styles.playButtonSubtext}>Tour par tour • Grille 9x7 • 2 Actions/tour</Text>
@@ -127,7 +134,10 @@ export default function HomeScreen() {
                   styles.codexTabButton,
                   isActive ? activeColorStyle : styles.tabInactive,
                 ]}
-                onPress={() => setActiveFactionId(fac.id)}
+                onPress={() => {
+                  playSfx('click');
+                  setActiveFactionId(fac.id);
+                }}
               >
                 <Text
                   style={[

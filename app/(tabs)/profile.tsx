@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity, Modal, TextInput, Platform } from 'react-native';
 import { useGameStore, XP_THRESHOLDS, getAvatarSource, MENU_MUSIC_TRACKS } from '../../src/store/gameStore';
 import { SymbolView } from 'expo-symbols';
+import { playSfx } from '../../src/utils/sfx';
 
 export default function ProfileScreen() {
   const {
@@ -75,7 +76,7 @@ export default function ProfileScreen() {
         <Text style={styles.gamerTitle}>{selectedTitle}</Text>
 
         {/* Bouton d'édition du profil */}
-        <TouchableOpacity style={styles.editProfileButton} onPress={handleOpenEdit}>
+        <TouchableOpacity style={styles.editProfileButton} onPress={() => { playSfx('click'); handleOpenEdit(); }}>
           <Text style={styles.editProfileButtonText}>✏️ MODIFIER LE PROFIL</Text>
         </TouchableOpacity>
 
@@ -158,7 +159,10 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 key={track.id}
                 style={[styles.musicTrackItem, isSelected && styles.musicTrackItemSelected]}
-                onPress={() => setMenuMusic(track.id)}
+                onPress={() => {
+                  playSfx('click');
+                  setMenuMusic(track.id);
+                }}
               >
                 <View style={styles.musicTrackTextContainer}>
                   <Text style={[styles.musicTrackName, isSelected ? styles.musicTrackNameSelected : styles.musicTrackNameNormal]}>

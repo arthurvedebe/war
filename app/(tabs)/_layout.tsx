@@ -75,10 +75,20 @@ export default function TabLayout() {
       try {
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
-          staysActiveInBackground: false,
+          staysActiveInBackground: true,
           playThroughEarpieceAndroid: false,
         });
         await sound.loadAsync(musicSource, { isLooping: true, volume: 0.4 });
+        await sound.setIsLoopingAsync(true);
+        
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded) {
+            if (status.didJustFinish) {
+              sound.replayAsync().catch(() => {});
+            }
+          }
+        });
+
         soundRef.current = sound;
         if (active) {
           // Si on est en train de préécouter une musique dans la boutique, on ne lance pas la musique de fond tout de suite

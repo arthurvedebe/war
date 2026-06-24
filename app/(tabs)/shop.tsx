@@ -13,6 +13,7 @@ import { useGameStore, getAvatarSource, getSkinSource, MENU_MUSIC_TRACKS } from 
 import { Skin, Unit } from '../../src/types';
 import { useFocusEffect } from 'expo-router';
 import { Audio } from 'expo-av';
+import { playSfx } from '../../src/utils/sfx';
 
 const SHOP_TITLES = [
   { id: 'title_gladiator', name: 'Gladiateur Cybernétique', cost: 80 },
@@ -92,6 +93,7 @@ export default function ShopScreen() {
     }
     const success = buySkin(skin.id);
     if (success) {
+      playSfx('victory');
       triggerNotification(`Félicitations ! Skin "${skin.name}" déverrouillé ! ✨`, 'success');
     } else {
       triggerNotification("Une erreur est survenue lors de l'achat.", 'error');
@@ -106,6 +108,7 @@ export default function ShopScreen() {
     }
     const success = buyTitle(title.id, title.name, title.cost);
     if (success) {
+      playSfx('victory');
       triggerNotification(`Titre "${title.name}" déverrouillé ! 🏷️`, 'success');
     } else {
       triggerNotification("Une erreur est survenue lors de l'achat.", 'error');
@@ -120,6 +123,7 @@ export default function ShopScreen() {
     }
     const success = buyIcon(icon.id, '', icon.cost);
     if (success) {
+      playSfx('victory');
       triggerNotification(`Icône "${icon.name}" déverrouillée ! 🎭`, 'success');
     } else {
       triggerNotification("Une erreur est survenue lors de l'achat.", 'error');
@@ -129,6 +133,7 @@ export default function ShopScreen() {
   // Équiper un skin déverrouillé sur une unité
   const handleEquipSkin = (unitId: string) => {
     if (selectedSkinForEquip) {
+      playSfx('click');
       equipSkin(unitId, selectedSkinForEquip.id);
       const unit = units.find(u => u.id === unitId);
       triggerNotification(`Skin "${selectedSkinForEquip.name}" équipé sur ${unit?.name} !`, 'success');
@@ -197,6 +202,7 @@ export default function ShopScreen() {
     }
     const success = buyMusic(music.id, music.cost);
     if (success) {
+      playSfx('victory');
       triggerNotification(`Musique "${music.name}" débloquée ! 🎵`, 'success');
     } else {
       triggerNotification("Une erreur est survenue lors de l'achat.", 'error');
@@ -227,7 +233,10 @@ export default function ShopScreen() {
           <TouchableOpacity
             key={tab.key}
             style={[styles.categoryTabButton, activeTab === tab.key && styles.categoryTabButtonActive]}
-            onPress={() => setActiveTab(tab.key as any)}
+            onPress={() => {
+              playSfx('click');
+              setActiveTab(tab.key as any);
+            }}
           >
             <Text style={[styles.categoryTabText, activeTab === tab.key && styles.categoryTabTextActive]}>
               {tab.label}

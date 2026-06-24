@@ -42,6 +42,7 @@ import { useGameStore, PLAYABLE_FACTIONS, FACTION_UNIT_TEMPLATES, getSkinSource,
 
 import SetupWizard from '../../src/components/SetupWizard';
 import { Player, Unit, FactionType } from '../../src/types';
+import { playSfx } from '../../src/utils/sfx';
 
 // Composant Projectile Techno avec traînée (hooks autorisés ici)
 type TechnoProjectileProps = {
@@ -383,6 +384,13 @@ export default function GameScreen() {
     setAnimations((prev) => prev.filter((a) => a.id !== id));
   };
 
+  // Effet sonore de victoire
+  useEffect(() => {
+    if (winner) {
+      playSfx('victory');
+    }
+  }, [winner]);
+
   const triggerAttackAnimation = (
     attackerX: number,
     attackerY: number,
@@ -410,6 +418,7 @@ export default function GameScreen() {
     const color = factionColors[factionId] || '#fff';
 
     if (isRanged) {
+      playSfx('laser');
       setAnimations((prev) => [
         ...prev,
         {
@@ -430,11 +439,13 @@ export default function GameScreen() {
 
       sharedX.value = withTiming(targetPixelX, { duration: 350 });
       sharedY.value = withTiming(targetPixelY, { duration: 350 }, () => {
+        runOnJS(playSfx)('hit');
         sharedOpacity.value = withTiming(0, { duration: 100 }, () => {
           runOnJS(removeAnimation)(animId);
         });
       });
     } else {
+      playSfx('melee');
       const targetSharedX = makeMutable(targetPixelX);
       const targetSharedY = makeMutable(targetPixelY);
 
@@ -457,6 +468,7 @@ export default function GameScreen() {
       ]);
 
       sharedOpacity.value = withTiming(0, { duration: 300 }, () => {
+        runOnJS(playSfx)('hit');
         runOnJS(removeAnimation)(animId);
       });
     }
@@ -892,7 +904,10 @@ export default function GameScreen() {
                       styles.unitButton,
                       selectedUnitId === unit.id ? styles.unitButtonSelected : styles.unitButtonInactive,
                     ]}
-                    onPress={() => setSelectedUnitId(unit.id)}
+                    onPress={() => {
+                      playSfx('click');
+                      setSelectedUnitId(unit.id);
+                    }}
                   >
                     <Text style={styles.unitButtonText}>
                       {unit.name.split(' - ')[1] || unit.name}
@@ -916,7 +931,10 @@ export default function GameScreen() {
                 (selectedUnit.actionsPerformed || 0) >= 2 && styles.btnDisabled,
               ]}
               disabled={(selectedUnit.actionsPerformed || 0) >= 2}
-              onPress={() => setActionMode('move')}
+              onPress={() => {
+                playSfx('click');
+                setActionMode('move');
+              }}
             >
               <Text style={styles.actionModeText}>
                 🏃 DEPL {(selectedUnit.actionsPerformed || 0) >= 2 ? '❌' : '✓'}
@@ -929,7 +947,10 @@ export default function GameScreen() {
                 (selectedUnit.actionsPerformed || 0) >= 2 && styles.btnDisabled,
               ]}
               disabled={(selectedUnit.actionsPerformed || 0) >= 2}
-              onPress={() => setActionMode('attack')}
+              onPress={() => {
+                playSfx('click');
+                setActionMode('attack');
+              }}
             >
               <Text style={styles.actionModeText}>
                 🎯 ATT {(selectedUnit.actionsPerformed || 0) >= 2 ? '❌' : '✓'}
@@ -939,7 +960,13 @@ export default function GameScreen() {
         )}
 
         <View style={styles.actionButtonGroup}>
-          <TouchableOpacity style={styles.endTurnButton} onPress={switchTurn}>
+          <TouchableOpacity
+            style={styles.endTurnButton}
+            onPress={() => {
+              playSfx('click');
+              switchTurn();
+            }}
+          >
             <Text style={styles.buttonText}>FIN DU TOUR</Text>
           </TouchableOpacity>
         </View>
@@ -1004,7 +1031,13 @@ export default function GameScreen() {
               );
             })()}
 
-            <TouchableOpacity style={styles.modalButton} onPress={handleReset}>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                playSfx('click');
+                handleReset();
+              }}
+            >
               <Text style={styles.modalButtonText}>REJOUER</Text>
             </TouchableOpacity>
           </View>

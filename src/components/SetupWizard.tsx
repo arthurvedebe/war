@@ -12,6 +12,7 @@ import { useGameStore, PLAYABLE_FACTIONS, FACTION_UNIT_TEMPLATES } from '../stor
 import { Faction, Player, UnitTemplate } from '../types';
 import { router } from 'expo-router';
 import UnitSkinPreview from './UnitSkinPreview';
+import { playSfx } from '../utils/sfx';
 
 export default function SetupWizard() {
   const {
@@ -38,7 +39,7 @@ export default function SetupWizard() {
       <View style={styles.container}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Format de Bataille</Text>
-          <TouchableOpacity style={styles.quitButton} onPress={() => router.replace('/')}>
+          <TouchableOpacity style={styles.quitButton} onPress={() => { playSfx('click'); router.replace('/'); }}>
             <Text style={styles.quitButtonText}>Quitter</Text>
           </TouchableOpacity>
         </View>
@@ -53,7 +54,10 @@ export default function SetupWizard() {
             <TouchableOpacity
               key={item.pts}
               style={styles.pointsCard}
-              onPress={() => setPointsLimit(item.pts)}
+              onPress={() => {
+                playSfx('click');
+                setPointsLimit(item.pts);
+              }}
             >
               <Text style={styles.pointsVal}>{item.pts} pts</Text>
               <Text style={styles.pointsLabel}>{item.label}</Text>
@@ -78,7 +82,7 @@ export default function SetupWizard() {
               {playerLabel}
             </Text>
           </View>
-          <TouchableOpacity style={styles.quitButtonCompact} onPress={() => router.replace('/')}>
+          <TouchableOpacity style={styles.quitButtonCompact} onPress={() => { playSfx('click'); router.replace('/'); }}>
             <Text style={styles.quitButtonText}>Quitter</Text>
           </TouchableOpacity>
         </View>
@@ -92,7 +96,12 @@ export default function SetupWizard() {
               <TouchableOpacity
                 key={faction.id}
                 style={[styles.factionCard, isTaken && styles.shopCardDisabled]}
-                onPress={() => !isTaken && selectFaction(selectingPlayer, faction.id)}
+                onPress={() => {
+                  if (!isTaken) {
+                    playSfx('click');
+                    selectFaction(selectingPlayer, faction.id);
+                  }
+                }}
                 disabled={isTaken}
               >
                 <Image source={faction.avatar} style={styles.factionAvatar} />
@@ -138,7 +147,7 @@ export default function SetupWizard() {
             <View style={styles.pointsBadge}>
               <Text style={styles.pointsText}>⚡ {currentPoints} / {pointsLimit} pts</Text>
             </View>
-            <TouchableOpacity style={styles.quitButtonCompact} onPress={() => router.replace('/')}>
+            <TouchableOpacity style={styles.quitButtonCompact} onPress={() => { playSfx('click'); router.replace('/'); }}>
               <Text style={styles.quitButtonText}>Quitter</Text>
             </TouchableOpacity>
           </View>
@@ -162,7 +171,12 @@ export default function SetupWizard() {
               <TouchableOpacity
                 key={template.id}
                 style={[styles.shopCard, isDisabled && styles.shopCardDisabled]}
-                onPress={() => !isDisabled && handleBuyUnit(template)}
+                onPress={() => {
+                  if (!isDisabled) {
+                    playSfx('click');
+                    handleBuyUnit(template);
+                  }
+                }}
                 disabled={isDisabled}
               >
                 <View style={styles.cardHeaderRow}>
@@ -218,7 +232,12 @@ export default function SetupWizard() {
         <View style={styles.actionFooter}>
           <TouchableOpacity
             style={[styles.launchButton, !canStartGame && styles.launchButtonDisabled]}
-            onPress={() => canStartGame && completeDraft()}
+            onPress={() => {
+              if (canStartGame) {
+                playSfx('click');
+                completeDraft();
+              }
+            }}
             disabled={!canStartGame}
           >
             <Text style={styles.launchButtonText}>LANCER LE COMBAT TACTIQUE</Text>
