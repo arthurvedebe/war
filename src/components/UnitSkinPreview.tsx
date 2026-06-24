@@ -23,6 +23,8 @@ export default function UnitSkinPreview({
     factionId = 'golems';
   } else if (templateId.startsWith('sylvain')) {
     factionId = 'sylvains';
+  } else if (templateId.startsWith('necro')) {
+    factionId = 'necro';
   }
 
   const skinSource = getUnitSkinSource(factionId, unitType);

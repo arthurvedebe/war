@@ -19,6 +19,7 @@ const SHOP_TITLES = [
   { id: 'title_gladiator', name: 'Gladiateur Cybernétique', cost: 80 },
   { id: 'title_runemaster', name: 'Maître des Runes', cost: 100 },
   { id: 'title_forestlord', name: 'Seigneur de la Forêt', cost: 120 },
+  { id: 'title_necro', name: 'Seigneur du Nécro-Néant', cost: 150 },
   { id: 'title_plasma', name: 'Commandant Plasma', cost: 180 },
   { id: 'title_warlord', name: 'Dieu de la Faille', cost: 300 },
 ];

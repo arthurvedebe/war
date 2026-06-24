@@ -11,6 +11,8 @@ export const getAvatarSource = (avatarUri: string) => {
       return require('../../assets/images/sylvain_avatar.png');
     case 'techno_avatar':
       return require('../../assets/images/techno_avatar.png');
+    case 'necro_avatar':
+      return require('../../assets/images/necro_avatar.png');
     case 'gold_coin':
       return require('../../assets/images/gold_coin.png');
     case 'icon_alien':
@@ -66,6 +68,11 @@ export const getUnitSkinSource = (factionId: string, unitType: string) => {
     case 'technos_heavy':  return require('../../assets/images/skin_techno_heavy.png');
     case 'technos_scout':  return require('../../assets/images/skin_techno_scout.png');
     case 'technos_ranged': return require('../../assets/images/skin_techno_ranged.png');
+    // Necro
+    case 'necro_hero':   return require('../../assets/images/skin_necro_hero.png');
+    case 'necro_heavy':  return require('../../assets/images/skin_necro_heavy.png');
+    case 'necro_scout':  return require('../../assets/images/skin_necro_scout.png');
+    case 'necro_ranged': return require('../../assets/images/skin_necro_ranged.png');
     default: return require('../../assets/images/techno_avatar.png');
   }
 };
@@ -101,6 +108,13 @@ export const PLAYABLE_FACTIONS: Faction[] = [
     description: 'Armure équilibrée. Standard et polyvalents dans toutes les situations.',
     avatar: require('../../assets/images/techno_avatar.png'),
     physics: { density: 0.007, restitution: 0.35, friction: 0.4 }
+  },
+  {
+    id: 'necro',
+    name: 'Nécro-Cybers',
+    description: 'Guerriers cyber-squelettiques animés par un code nécromantique. Stables, denses et amortis.',
+    avatar: require('../../assets/images/necro_avatar.png'),
+    physics: { density: 0.010, restitution: 0.15, friction: 0.5 }
   }
 ];
 
@@ -132,17 +146,6 @@ export const FACTION_UNIT_TEMPLATES: {
       visuals: { glowColor: '#ef4444', symbol: '🛡️' }
     },
     {
-      id: 'golem_heavy_magnetite',
-      unitType: 'heavy',
-      name: 'Protecteur de Magnétite',
-      cost: 290,
-      maxHp: 105,
-      description: 'Sentinelle magnétique dense. Friction élevée qui l\'arrête net après un impact.',
-      physics: { radius: 25, density: 0.016, restitution: 0.03, friction: 0.9 },
-      tactical: { moveRange: 60, attackRange: 80, gridMoveRange: 1, gridAttackRange: 1 },
-      visuals: { glowColor: '#78716c', symbol: '🛡️' }
-    },
-    {
       id: 'golem_scout_pebble',
       unitType: 'scout',
       name: 'Galet Roulant',
@@ -152,17 +155,6 @@ export const FACTION_UNIT_TEMPLATES: {
       physics: { radius: 16, density: 0.010, restitution: 0.20, friction: 0.5 },
       tactical: { moveRange: 105, attackRange: 125, gridMoveRange: 3, gridAttackRange: 1 },
       visuals: { glowColor: '#a8a29e', symbol: '⚡' }
-    },
-    {
-      id: 'golem_scout_flint',
-      unitType: 'scout',
-      name: 'Éclat de Silex',
-      cost: 140,
-      maxHp: 55,
-      description: 'Fragment de pierre affilé. Très faible friction pour glisser rapidement.',
-      physics: { radius: 15, density: 0.012, restitution: 0.15, friction: 0.3 },
-      tactical: { moveRange: 115, attackRange: 135, gridMoveRange: 3, gridAttackRange: 1 },
-      visuals: { glowColor: '#cbd5e1', symbol: '⚡' }
     },
     {
       id: 'golem_ranged_bombard',
@@ -200,17 +192,6 @@ export const FACTION_UNIT_TEMPLATES: {
       visuals: { glowColor: '#15803d', symbol: '🛡️' }
     },
     {
-      id: 'sylvain_heavy_trunk',
-      unitType: 'heavy',
-      name: 'Tronc Pétrifié Ancien',
-      cost: 270,
-      maxHp: 100,
-      description: 'Souche séculaire pétrifiée. Très stable, offre une excellente défense végétale.',
-      physics: { radius: 25, density: 0.0065, restitution: 0.40, friction: 0.35 },
-      tactical: { moveRange: 65, attackRange: 80, gridMoveRange: 1, gridAttackRange: 1 },
-      visuals: { glowColor: '#854d0e', symbol: '🛡️' }
-    },
-    {
       id: 'sylvain_scout_leaf',
       unitType: 'scout',
       name: 'Voltigeur Feuille-Vent',
@@ -220,17 +201,6 @@ export const FACTION_UNIT_TEMPLATES: {
       physics: { radius: 15, density: 0.0020, restitution: 0.95, friction: 0.05 },
       tactical: { moveRange: 135, attackRange: 145, gridMoveRange: 3, gridAttackRange: 1 },
       visuals: { glowColor: '#84cc16', symbol: '⚡' }
-    },
-    {
-      id: 'sylvain_scout_spore',
-      unitType: 'scout',
-      name: 'Graine de Pissenlit',
-      cost: 160,
-      maxHp: 60,
-      description: 'Spore aérienne à densité minimale. Flotte longuement et rebondit avec légèreté.',
-      physics: { radius: 16, density: 0.0015, restitution: 0.90, friction: 0.10 },
-      tactical: { moveRange: 145, attackRange: 135, gridMoveRange: 3, gridAttackRange: 1 },
-      visuals: { glowColor: '#f8fafc', symbol: '⚡' }
     },
     {
       id: 'sylvain_ranged_sap',
@@ -268,17 +238,6 @@ export const FACTION_UNIT_TEMPLATES: {
       visuals: { glowColor: '#06b6d4', symbol: '🛡️' }
     },
     {
-      id: 'techno_heavy_shield',
-      unitType: 'heavy',
-      name: 'Barrière Tactique Holo',
-      cost: 310,
-      maxHp: 105,
-      description: 'Robot bouclier lourd avec friction renforcée pour maintenir les positions.',
-      physics: { radius: 26, density: 0.0140, restitution: 0.15, friction: 0.60 },
-      tactical: { moveRange: 65, attackRange: 75, gridMoveRange: 1, gridAttackRange: 1 },
-      visuals: { glowColor: '#22d3ee', symbol: '🛡️' }
-    },
-    {
       id: 'techno_scout_probe',
       unitType: 'scout',
       name: 'Drone Cyber-Sonde',
@@ -290,17 +249,6 @@ export const FACTION_UNIT_TEMPLATES: {
       visuals: { glowColor: '#eab308', symbol: '⚡' }
     },
     {
-      id: 'techno_scout_brawler',
-      unitType: 'scout',
-      name: 'Micro-Brawler Vecteur',
-      cost: 160,
-      maxHp: 65,
-      description: 'Mini-drone de combat sur chenilles, plus dense, conçu pour foncer sur les ennemis.',
-      physics: { radius: 17, density: 0.0070, restitution: 0.30, friction: 0.35 },
-      tactical: { moveRange: 110, attackRange: 120, gridMoveRange: 3, gridAttackRange: 1 },
-      visuals: { glowColor: '#f97316', symbol: '⚡' }
-    },
-    {
       id: 'techno_ranged_plasma',
       unitType: 'ranged',
       name: 'Exo-Canon à Fission Plasma',
@@ -310,6 +258,52 @@ export const FACTION_UNIT_TEMPLATES: {
       physics: { radius: 19, density: 0.0070, restitution: 0.30, friction: 0.35 },
       tactical: { moveRange: 75, attackRange: 165, gridMoveRange: 2, gridAttackRange: 4 },
       visuals: { glowColor: '#8b5cf6', symbol: '🎯' }
+    }
+  ],
+  necro: [
+    {
+      id: 'necro_hero_lich',
+      unitType: 'hero',
+      name: 'Liche Cybernétique',
+      cost: 520,
+      maxHp: 140,
+      description: 'Héros nécromancien biomécanique. Génère un champ gravitationnel lourd autour d\'elle.',
+      physics: { radius: 23, density: 0.012, restitution: 0.10, friction: 0.6 },
+      tactical: { moveRange: 80, attackRange: 105, gridMoveRange: 2, gridAttackRange: 1 },
+      visuals: { glowColor: '#a855f7', symbol: '👑' }
+    },
+    {
+      id: 'necro_heavy_reaper',
+      unitType: 'heavy',
+      name: 'Faucheur de Silicium',
+      cost: 300,
+      maxHp: 100,
+      description: 'Garde lourd métallique équipé d\'une faux énergétique massive et stable.',
+      physics: { radius: 26, density: 0.016, restitution: 0.08, friction: 0.7 },
+      tactical: { moveRange: 60, attackRange: 80, gridMoveRange: 1, gridAttackRange: 1 },
+      visuals: { glowColor: '#8b5cf6', symbol: '🛡️' }
+    },
+    {
+      id: 'necro_scout_wraith',
+      unitType: 'scout',
+      name: 'Spectre de Faille',
+      cost: 160,
+      maxHp: 60,
+      description: 'Infiltrateur spectral hyper-rapide et furtif qui glisse sur le champ de bataille.',
+      physics: { radius: 16, density: 0.006, restitution: 0.30, friction: 0.25 },
+      tactical: { moveRange: 125, attackRange: 135, gridMoveRange: 3, gridAttackRange: 1 },
+      visuals: { glowColor: '#c084fc', symbol: '⚡' }
+    },
+    {
+      id: 'necro_ranged_siphon',
+      unitType: 'ranged',
+      name: 'Siphonneur d\'Âme-Énergie',
+      cost: 340,
+      maxHp: 75,
+      description: 'Artillerie moyenne tirant des impulsions plasmiques de drainage de vie.',
+      physics: { radius: 19, density: 0.009, restitution: 0.20, friction: 0.45 },
+      tactical: { moveRange: 75, attackRange: 170, gridMoveRange: 2, gridAttackRange: 4 },
+      visuals: { glowColor: '#d8b4fe', symbol: '🎯' }
     }
   ]
 };
@@ -503,7 +497,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   avatarUri: 'techno_avatar',
   unlockedTitles: ['Légende de la Faille Tactique', 'Recrue de la Faille'],
   selectedTitle: 'Légende de la Faille Tactique',
-  unlockedIcons: ['techno_avatar', 'golem_avatar', 'sylvain_avatar'],
+  unlockedIcons: ['techno_avatar', 'golem_avatar', 'sylvain_avatar', 'necro_avatar'],
 
   // Musique
   selectedMenuMusic: 'menu_default',
@@ -1022,7 +1016,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       avatarUri: 'techno_avatar',
       unlockedTitles: ['Légende de la Faille Tactique', 'Recrue de la Faille'],
       selectedTitle: 'Légende de la Faille Tactique',
-      unlockedIcons: ['techno_avatar', 'golem_avatar', 'sylvain_avatar'],
+      unlockedIcons: ['techno_avatar', 'golem_avatar', 'sylvain_avatar', 'necro_avatar'],
       rewards: INITIAL_REWARDS.map((r) => ({ ...r, unlocked: false, unlockedAt: undefined })),
       skins: DEFAULT_SKINS.map((s) => (s.id === 'skin-default' ? { ...s, unlocked: true } : { ...s, unlocked: false })),
       selectedMenuMusic: 'menu_default',

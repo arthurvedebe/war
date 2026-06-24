@@ -6,7 +6,7 @@ export type Player = 'player1' | 'player2';
 /**
  * Les différentes factions jouables.
  */
-export type FactionType = 'golems' | 'sylvains' | 'technos';
+export type FactionType = 'golems' | 'sylvains' | 'technos' | 'necro';
 
 /**
  * Les différents rôles ou classes d'unités tactiques.

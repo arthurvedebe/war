@@ -155,6 +155,25 @@ const AttackAnimationItem: React.FC<{
           <Circle cx={5} cy={6} r={2} color="#34d399" />
         </Group>
       );
+    } else if (anim.factionId === 'necro') {
+      return (
+        <Group opacity={anim.opacity} transform={transform}>
+          <Path
+            path={(() => {
+              const path = Skia.Path.Make();
+              path.moveTo(-15, -15);
+              path.quadTo(15, 0, -15, 15);
+              path.moveTo(15, -15);
+              path.quadTo(-15, 0, 15, 15);
+              return path;
+            })()}
+            color="#a855f7"
+            style="stroke"
+            strokeWidth={3}
+          />
+          <Circle cx={0} cy={0} r={10} color="rgba(168, 85, 247, 0.3)" />
+        </Group>
+      );
     } else {
       return (
         <Group opacity={anim.opacity} transform={transform}>
@@ -270,6 +289,7 @@ export default function GameScreen() {
   const golemImg = useImage(require('../../assets/images/golem_avatar.png'));
   const sylvainImg = useImage(require('../../assets/images/sylvain_avatar.png'));
   const technoImg = useImage(require('../../assets/images/techno_avatar.png'));
+  const necroImg = useImage(require('../../assets/images/necro_avatar.png'));
   const projGolem = useImage(require('../../assets/images/projectile_golem.png'));
   const projSylvain = useImage(require('../../assets/images/projectile_sylvain.png'));
   // Skins spécifiques par unité
@@ -285,6 +305,10 @@ export default function GameScreen() {
   const skinTechnoHeavy  = useImage(require('../../assets/images/skin_techno_heavy.png'));
   const skinTechnoScout  = useImage(require('../../assets/images/skin_techno_scout.png'));
   const skinTechnoRanged = useImage(require('../../assets/images/skin_techno_ranged.png'));
+  const skinNecroHero   = useImage(require('../../assets/images/skin_necro_hero.png'));
+  const skinNecroHeavy  = useImage(require('../../assets/images/skin_necro_heavy.png'));
+  const skinNecroScout  = useImage(require('../../assets/images/skin_necro_scout.png'));
+  const skinNecroRanged = useImage(require('../../assets/images/skin_necro_ranged.png'));
 
   const getUnitSpriteSkia = (factionId: string, unitType: string) => {
     const key = `${factionId}_${unitType}`;
@@ -301,6 +325,10 @@ export default function GameScreen() {
       case 'technos_heavy':   return skinTechnoHeavy || technoImg;
       case 'technos_scout':   return skinTechnoScout || technoImg;
       case 'technos_ranged':  return skinTechnoRanged || technoImg;
+      case 'necro_hero':      return skinNecroHero || necroImg;
+      case 'necro_heavy':     return skinNecroHeavy || necroImg;
+      case 'necro_scout':     return skinNecroScout || necroImg;
+      case 'necro_ranged':    return skinNecroRanged || necroImg;
       default: return technoImg;
     }
   };
@@ -414,6 +442,7 @@ export default function GameScreen() {
       golems: '#f59e0b',
       sylvains: '#10b981',
       technos: '#3b82f6',
+      necro: '#a855f7',
     };
     const color = factionColors[factionId] || '#fff';
 

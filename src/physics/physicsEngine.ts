@@ -23,6 +23,7 @@ const FACTION_PHYSICS: {
   golems: { density: 0.015, restitution: 0.05, friction: 0.6 },
   sylvains: { density: 0.003, restitution: 0.75, friction: 0.15 },
   technos: { density: 0.007, restitution: 0.35, friction: 0.4 },
+  necro: { density: 0.010, restitution: 0.15, friction: 0.5 },
 };
 
 /**

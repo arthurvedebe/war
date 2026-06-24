@@ -126,6 +126,7 @@ export default function HomeScreen() {
             let activeColorStyle = styles.tabGolems;
             if (fac.id === 'sylvains') activeColorStyle = styles.tabSylvains;
             else if (fac.id === 'technos') activeColorStyle = styles.tabTechnos;
+            else if (fac.id === 'necro') activeColorStyle = styles.tabNecro;
 
             return (
               <TouchableOpacity
@@ -164,12 +165,12 @@ export default function HomeScreen() {
               <View style={styles.physicsPillGroup}>
                 <View style={styles.physPill}>
                   <Text style={styles.physPillText}>
-                    Masse: {activeFactionId === 'golems' ? 'Lourde 🪨' : activeFactionId === 'sylvains' ? 'Légère 🍃' : 'Standard ⚖️'}
+                    Masse: {activeFactionId === 'golems' ? 'Lourde 🪨' : activeFactionId === 'sylvains' ? 'Légère 🍃' : activeFactionId === 'necro' ? 'Semi-lourde 💀' : 'Standard ⚖️'}
                   </Text>
                 </View>
                 <View style={styles.physPill}>
                   <Text style={styles.physPillText}>
-                    Élasticité: {activeFactionId === 'golems' ? 'Nulle 🧱' : activeFactionId === 'sylvains' ? 'Élevée 🟢' : 'Moyenne 🟡'}
+                    Élasticité: {activeFactionId === 'golems' ? 'Nulle 🧱' : activeFactionId === 'sylvains' ? 'Élevée 🟢' : activeFactionId === 'necro' ? 'Faible ⚡' : 'Moyenne 🟡'}
                   </Text>
                 </View>
               </View>
@@ -394,7 +395,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   codexTabButton: {
-    flex: 0.31,
+    flex: 1,
+    marginHorizontal: 3,
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
@@ -411,6 +413,10 @@ const styles = StyleSheet.create({
   tabTechnos: {
     backgroundColor: 'rgba(59, 130, 246, 0.1)',
     borderColor: '#3b82f6',
+  },
+  tabNecro: {
+    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    borderColor: '#a855f7',
   },
   tabInactive: {
     backgroundColor: '#1e293b',
