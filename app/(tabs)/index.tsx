@@ -201,7 +201,7 @@ export default function HomeScreen() {
                         </View>
                       </View>
                       <Text style={styles.troupeHp}>
-                        ❤️ {tmpl.maxHp} PV | 🏃 Dépl: {tmpl.tactical.gridMoveRange} {tmpl.tactical.gridMoveRange > 1 ? 'cases' : 'case'} | 🎯 Att: {tmpl.tactical.gridAttackRange} {tmpl.tactical.gridAttackRange > 1 ? 'cases' : 'case'}
+                        ❤️ {tmpl.maxHp} PV | 🗡️ {tmpl.baseDamage} Dgts | 🏃 Dépl: {tmpl.tactical.gridMoveRange} {tmpl.tactical.gridMoveRange > 1 ? 'cases' : 'case'} | 🎯 Att: {tmpl.tactical.gridAttackRange} {tmpl.tactical.gridAttackRange > 1 ? 'cases' : 'case'}
                       </Text>
                       <Text style={styles.troupeDesc}>{tmpl.description}</Text>
                     </View>

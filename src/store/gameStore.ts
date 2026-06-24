@@ -129,9 +129,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Colosse de Granite',
       cost: 550,
       maxHp: 170,
-      description: 'Héros colossal sculpté dans du granite runique. PV massifs, très lourd, difficile à repousser.',
+      baseDamage: 40,
+      description: 'Héros colossal sculpté dans du granite runique. PV massifs, très lourd, difficile à repousser. Rage passive.',
       physics: { radius: 24, density: 0.022, restitution: 0.02, friction: 0.7 },
-      tactical: { moveRange: 65, attackRange: 95, gridMoveRange: 2, gridAttackRange: 1 },
+      tactical: { moveRange: 50, attackRange: 95, gridMoveRange: 1, gridAttackRange: 1 },
       visuals: { glowColor: '#eab308', symbol: '👑' }
     },
     {
@@ -140,9 +141,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Bastion d\'Obsidienne',
       cost: 300,
       maxHp: 110,
-      description: 'Garde défensif en roche noire volcanique. Masse extrême bloquant les passages.',
+      baseDamage: 24,
+      description: 'Garde défensif en roche noire volcanique. Masse extrême bloquant les passages. Rage passive.',
       physics: { radius: 27, density: 0.018, restitution: 0.05, friction: 0.8 },
-      tactical: { moveRange: 55, attackRange: 75, gridMoveRange: 1, gridAttackRange: 1 },
+      tactical: { moveRange: 45, attackRange: 75, gridMoveRange: 1, gridAttackRange: 1 },
       visuals: { glowColor: '#ef4444', symbol: '🛡️' }
     },
     {
@@ -151,9 +153,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Galet Roulant',
       cost: 130,
       maxHp: 50,
+      baseDamage: 16,
       description: 'Débris de roche rapide. Léger, idéal pour propulser les obstacles à faible coût.',
       physics: { radius: 16, density: 0.010, restitution: 0.20, friction: 0.5 },
-      tactical: { moveRange: 105, attackRange: 125, gridMoveRange: 3, gridAttackRange: 1 },
+      tactical: { moveRange: 80, attackRange: 125, gridMoveRange: 2, gridAttackRange: 1 },
       visuals: { glowColor: '#a8a29e', symbol: '⚡' }
     },
     {
@@ -162,9 +165,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Bombarde de Rune-Roche',
       cost: 380,
       maxHp: 80,
+      baseDamage: 22,
       description: 'Artillerie lourde tirant des rochers magiques géants dévastateurs (Très longue portée d\'attaque).',
       physics: { radius: 20, density: 0.014, restitution: 0.05, friction: 0.6 },
-      tactical: { moveRange: 65, attackRange: 185, gridMoveRange: 2, gridAttackRange: 5 },
+      tactical: { moveRange: 50, attackRange: 185, gridMoveRange: 1, gridAttackRange: 5 },
       visuals: { glowColor: '#f97316', symbol: '🎯' }
     }
   ],
@@ -175,9 +179,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Avatar de Gaia',
       cost: 480,
       maxHp: 130,
+      baseDamage: 45,
       description: 'Esprit sylvestre légendaire. Très agile et rebondissant, il ricoche avec grâce.',
       physics: { radius: 22, density: 0.0035, restitution: 0.85, friction: 0.10 },
-      tactical: { moveRange: 95, attackRange: 115, gridMoveRange: 2, gridAttackRange: 1 },
+      tactical: { moveRange: 115, attackRange: 115, gridMoveRange: 3, gridAttackRange: 1 },
       visuals: { glowColor: '#22c55e', symbol: '👑' }
     },
     {
@@ -186,9 +191,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Écorce-Bouclier',
       cost: 280,
       maxHp: 95,
+      baseDamage: 28,
       description: 'Protecteur de la forêt en bois de fer. Absorbe les impacts en oscillant.',
       physics: { radius: 26, density: 0.0055, restitution: 0.60, friction: 0.20 },
-      tactical: { moveRange: 75, attackRange: 90, gridMoveRange: 1, gridAttackRange: 1 },
+      tactical: { moveRange: 90, attackRange: 90, gridMoveRange: 2, gridAttackRange: 1 },
       visuals: { glowColor: '#15803d', symbol: '🛡️' }
     },
     {
@@ -197,9 +203,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Voltigeur Feuille-Vent',
       cost: 170,
       maxHp: 65,
+      baseDamage: 20,
       description: 'Créature foliaire super légère. Rebondit intensément sur toutes les surfaces.',
       physics: { radius: 15, density: 0.0020, restitution: 0.95, friction: 0.05 },
-      tactical: { moveRange: 135, attackRange: 145, gridMoveRange: 3, gridAttackRange: 1 },
+      tactical: { moveRange: 155, attackRange: 145, gridMoveRange: 4, gridAttackRange: 1 },
       visuals: { glowColor: '#84cc16', symbol: '⚡' }
     },
     {
@@ -208,9 +215,10 @@ export const FACTION_UNIT_TEMPLATES: {
       name: 'Baliste de Sève Sauvage',
       cost: 320,
       maxHp: 60,
+      baseDamage: 25,
       description: 'Propulse des grappes de sève collante (Moyenne portée d\'attaque).',
       physics: { radius: 19, density: 0.0030, restitution: 0.70, friction: 0.15 },
-      tactical: { moveRange: 80, attackRange: 175, gridMoveRange: 2, gridAttackRange: 3 },
+      tactical: { moveRange: 100, attackRange: 175, gridMoveRange: 3, gridAttackRange: 3 },
       visuals: { glowColor: '#ec4899', symbol: '🎯' }
     }
   ],
@@ -220,7 +228,8 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'hero',
       name: 'Méca-Commandeur Apex',
       cost: 500,
-      maxHp: 150,
+      maxHp: 175,
+      baseDamage: 52,
       description: 'Exosquelette blindé équipé de stabilisateurs. Équilibré et robuste pour mener l\'assaut.',
       physics: { radius: 23, density: 0.0085, restitution: 0.35, friction: 0.40 },
       tactical: { moveRange: 85, attackRange: 105, gridMoveRange: 2, gridAttackRange: 1 },
@@ -231,7 +240,8 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'heavy',
       name: 'Sentinelle Cuirassée',
       cost: 320,
-      maxHp: 100,
+      maxHp: 125,
+      baseDamage: 34,
       description: 'Garde robotique d\'acier. Masse équilibrée pour repousser les lignes ennemies.',
       physics: { radius: 27, density: 0.0120, restitution: 0.25, friction: 0.50 },
       tactical: { moveRange: 70, attackRange: 85, gridMoveRange: 1, gridAttackRange: 1 },
@@ -242,7 +252,8 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'scout',
       name: 'Drone Cyber-Sonde',
       cost: 150,
-      maxHp: 60,
+      maxHp: 75,
+      baseDamage: 24,
       description: 'Drone de reconnaissance rapide doté de micro-propulseurs électriques.',
       physics: { radius: 16, density: 0.0050, restitution: 0.45, friction: 0.30 },
       tactical: { moveRange: 120, attackRange: 130, gridMoveRange: 3, gridAttackRange: 1 },
@@ -253,7 +264,8 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'ranged',
       name: 'Exo-Canon à Fission Plasma',
       cost: 350,
-      maxHp: 70,
+      maxHp: 85,
+      baseDamage: 30,
       description: 'Tire des obus plasma thermiques (Longue portée d\'attaque).',
       physics: { radius: 19, density: 0.0070, restitution: 0.30, friction: 0.35 },
       tactical: { moveRange: 75, attackRange: 165, gridMoveRange: 2, gridAttackRange: 4 },
@@ -266,8 +278,9 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'hero',
       name: 'Liche Cybernétique',
       cost: 520,
-      maxHp: 140,
-      description: 'Héros nécromancien biomécanique. Génère un champ gravitationnel lourd autour d\'elle.',
+      maxHp: 130,
+      baseDamage: 38,
+      description: 'Héros nécromancien squelettique. Drain de vie et résurrection unique.',
       physics: { radius: 23, density: 0.012, restitution: 0.10, friction: 0.6 },
       tactical: { moveRange: 80, attackRange: 105, gridMoveRange: 2, gridAttackRange: 1 },
       visuals: { glowColor: '#a855f7', symbol: '👑' }
@@ -277,8 +290,9 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'heavy',
       name: 'Faucheur de Silicium',
       cost: 300,
-      maxHp: 100,
-      description: 'Garde lourd métallique équipé d\'une faux énergétique massive et stable.',
+      maxHp: 90,
+      baseDamage: 24,
+      description: 'Garde squelette armé d\'une faux énergétique. Stable. Drain de vie.',
       physics: { radius: 26, density: 0.016, restitution: 0.08, friction: 0.7 },
       tactical: { moveRange: 60, attackRange: 80, gridMoveRange: 1, gridAttackRange: 1 },
       visuals: { glowColor: '#8b5cf6', symbol: '🛡️' }
@@ -288,8 +302,9 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'scout',
       name: 'Spectre de Faille',
       cost: 160,
-      maxHp: 60,
-      description: 'Infiltrateur spectral hyper-rapide et furtif qui glisse sur le champ de bataille.',
+      maxHp: 50,
+      baseDamage: 16,
+      description: 'Fantôme infiltrateur hyper-rapide. Drain de vie.',
       physics: { radius: 16, density: 0.006, restitution: 0.30, friction: 0.25 },
       tactical: { moveRange: 125, attackRange: 135, gridMoveRange: 3, gridAttackRange: 1 },
       visuals: { glowColor: '#c084fc', symbol: '⚡' }
@@ -299,8 +314,9 @@ export const FACTION_UNIT_TEMPLATES: {
       unitType: 'ranged',
       name: 'Siphonneur d\'Âme-Énergie',
       cost: 340,
-      maxHp: 75,
-      description: 'Artillerie moyenne tirant des impulsions plasmiques de drainage de vie.',
+      maxHp: 65,
+      baseDamage: 20,
+      description: 'Undead mage drainant la vie à distance. Drain de vie.',
       physics: { radius: 19, density: 0.009, restitution: 0.20, friction: 0.45 },
       tactical: { moveRange: 75, attackRange: 170, gridMoveRange: 2, gridAttackRange: 4 },
       visuals: { glowColor: '#d8b4fe', symbol: '🎯' }
@@ -650,6 +666,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const updatedUnits = units.map((u) => {
       if (u.player === nextTurn) {
+        if (u.isStunned) {
+          return { ...u, isStunned: false, hasMoved: true, hasAttacked: true, actionsPerformed: 2 };
+        }
         return { ...u, hasMoved: false, hasAttacked: false, actionsPerformed: 0 };
       }
       return u;
@@ -740,8 +759,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     const currentUnits = get().units;
     const updatedUnits = currentUnits.map((u) => {
       if (u.id === attackerId) {
+        let hp = u.hp;
+        // Vol de vie pour la faction necro (50% de lifesteal)
+        if (u.factionId === 'necro') {
+          const healAmount = Math.round(damage * 0.5);
+          hp = Math.min(u.maxHp, u.hp + healAmount);
+        }
         return {
           ...u,
+          hp,
           hasAttacked: true,
           actionsPerformed: (u.actionsPerformed || 0) + 1,
         };
@@ -759,6 +785,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       const nextTurn = currentTurn === 'player1' ? 'player2' : 'player1';
       const resetUnits = updatedUnits.map((u) => {
         if (u.player === nextTurn) {
+          if (u.isStunned) {
+            return { ...u, isStunned: false, hasMoved: true, hasAttacked: true, actionsPerformed: 2 };
+          }
           return { ...u, hasMoved: false, hasAttacked: false, actionsPerformed: 0 };
         }
         return u;
@@ -783,8 +812,20 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const updatedUnits = units.map((u) => {
       if (u.id === id) {
-        const nextHp = Math.max(0, u.hp - amount);
+        let nextHp = Math.max(0, u.hp - amount);
         if (amount > 0) madeDamage = true;
+        
+        // Résurrection unique pour le Héros Liche Nécro-Cyber
+        if (nextHp === 0 && u.templateId === 'necro_hero_lich' && !u.hasResurrected) {
+          nextHp = Math.round(u.maxHp * 0.5);
+          return { 
+            ...u, 
+            hp: nextHp, 
+            hasResurrected: true, 
+            isStunned: true 
+          };
+        }
+        
         return { ...u, hp: nextHp };
       }
       return u;

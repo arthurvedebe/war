@@ -34,6 +34,7 @@ export interface UnitTemplate {
   name: string;
   cost: number;
   maxHp: number;
+  baseDamage: number;
   description: string;
   physics: {
     radius: number;
@@ -83,6 +84,8 @@ export interface Unit {
   hasMoved: boolean;
   hasAttacked: boolean;
   actionsPerformed?: number;
+  hasResurrected?: boolean;
+  isStunned?: boolean;
 }
 
 /**

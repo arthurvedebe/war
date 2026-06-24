@@ -583,14 +583,22 @@ export default function GameScreen() {
       const isWithinRange = checkAttackPattern(unit, col, row);
 
       if (isWithinRange) {
-        // Dégâts
-        let baseDamage = 30;
-        if (unit.unitType === 'hero') baseDamage = 45;
-        else if (unit.unitType === 'scout') baseDamage = 20;
-        else if (unit.unitType === 'heavy') baseDamage = 28;
-        else if (unit.unitType === 'ranged') baseDamage = 25;
+        // Récupérer les dégâts de base depuis le template
+        const unitTemplates = FACTION_UNIT_TEMPLATES[unit.factionId] || [];
+        const template = unitTemplates.find((t) => t.id === unit.templateId);
+        let finalDamage = template?.baseDamage || 30;
 
-        const success = attackUnitGrid(unit.id, targetUnit.id, baseDamage);
+        // Effet de Rage des Golems : double dégâts si PV < 50%
+        // Concerne le Héros (Colosse) et le Lourd (Bastion)
+        if (
+          unit.factionId === 'golems' &&
+          (unit.hp / unit.maxHp) < 0.5 &&
+          (unit.templateId === 'golem_hero_granite' || unit.templateId === 'golem_heavy_obsidian')
+        ) {
+          finalDamage *= 2;
+        }
+
+        const success = attackUnitGrid(unit.id, targetUnit.id, finalDamage);
         if (success) {
           triggerAttackAnimation(
             unit.position.x,
@@ -1195,7 +1203,6 @@ function TacticalUnit({
   const templates = FACTION_UNIT_TEMPLATES[unit.factionId] || [];
   const template = templates.find((t) => t.id === unit.templateId);
   const glowColor = template?.visuals.glowColor || '#38bdf8';
-  const symbol = template?.visuals.symbol || '❓';
   
   // Utiliser une taille d'avatar proportionnelle à la hauteur de la case
   const radius = cellHeight * 0.35;
@@ -1294,30 +1301,7 @@ function TacticalUnit({
     return getTemplateGradient(unit.templateId);
   }, [unit.templateId]);
 
-  // 3. Préparer la police pour le symbole central (emoji)
-  const emojiFontSize = radius * 0.9;
-  const emojiFont = useMemo(() => {
-    return matchFont({
-      fontFamily: Platform.select({
-        ios: 'Apple Color Emoji',
-        android: 'Noto Color Emoji',
-        default: 'System',
-      }),
-      fontSize: emojiFontSize,
-    });
-  }, [emojiFontSize]);
-
-  // Mesurer le symbole pour l'alignement
-  const textX = useMemo(() => {
-    try {
-      const width = emojiFont.measureText(symbol).width;
-      return -width / 2;
-    } catch (e) {
-      return -emojiFontSize / 2;
-    }
-  }, [emojiFont, symbol, emojiFontSize]);
-
-  const textY = emojiFontSize * 0.33; // Centrage vertical approximatif de la ligne de base
+  // Rendu sans emoji central (skins uniquement)
 
   return (
     <Group transform={transform} opacity={groupOpacity}>
@@ -1418,21 +1402,7 @@ function TacticalUnit({
         strokeWidth={unit.unitType === 'hero' ? 2.5 : 1.8}
       />
 
-      {/* Plaque d'ombrage centrale sous l'émoticône */}
-      <Circle
-        cx={0}
-        cy={0}
-        r={radius * 0.55}
-        color="rgba(15, 23, 42, 0.45)"
-      />
-
-      {/* Symbole Central (Emoji unique) */}
-      <SkiaText
-        text={symbol}
-        x={textX}
-        y={textY}
-        font={emojiFont}
-      />
+      {/* Rendu sans emoji central */}
 
       {/* Badge de rôle miniature (haut-droite) */}
       <Circle
