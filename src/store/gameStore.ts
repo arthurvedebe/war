@@ -440,6 +440,7 @@ interface GameState {
   // Musique de menu
   selectedMenuMusic: string;
   unlockedMusicTracks: string[];
+  activePreviewTrackId: string | null;
 
   // Actions de configuration
   setPointsLimit: (points: number) => void;
@@ -467,6 +468,7 @@ interface GameState {
   buyIcon: (iconId: string, iconEmoji: string, cost: number) => boolean;
   buyMusic: (musicId: string, cost: number) => boolean;
   setMenuMusic: (musicId: string) => void;
+  setActivePreviewTrackId: (id: string | null) => void;
   resetGame: () => void;
   resetProfile: () => void;
   claimProgressionReward: (milestoneId: string, gold: number) => void;
@@ -506,6 +508,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   // Musique
   selectedMenuMusic: 'menu_default',
   unlockedMusicTracks: ['menu_default'],
+  activePreviewTrackId: null,
 
 
   setPointsLimit: (points: number) => {
@@ -1004,6 +1007,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ selectedMenuMusic: musicId });
   },
 
+  setActivePreviewTrackId: (id: string | null) => {
+    set({ activePreviewTrackId: id });
+  },
+
 
   resetProfile: () => {
     set({
@@ -1020,6 +1027,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       skins: DEFAULT_SKINS.map((s) => (s.id === 'skin-default' ? { ...s, unlocked: true } : { ...s, unlocked: false })),
       selectedMenuMusic: 'menu_default',
       unlockedMusicTracks: ['menu_default'],
+      activePreviewTrackId: null,
     });
   },
 

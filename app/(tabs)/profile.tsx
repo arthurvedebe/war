@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity, Modal, TextInput, Platform } from 'react-native';
-import { useGameStore, XP_THRESHOLDS, getAvatarSource } from '../../src/store/gameStore';
+import { useGameStore, XP_THRESHOLDS, getAvatarSource, MENU_MUSIC_TRACKS } from '../../src/store/gameStore';
 import { SymbolView } from 'expo-symbols';
 
 export default function ProfileScreen() {
@@ -18,6 +18,9 @@ export default function ProfileScreen() {
     updateAvatar,
     updateTitle,
     resetProfile,
+    unlockedMusicTracks,
+    selectedMenuMusic,
+    setMenuMusic,
   } = useGameStore();
 
   const unlockedCount = rewards.filter((r) => r.unlocked).length;
@@ -138,6 +141,37 @@ export default function ProfileScreen() {
               <View style={[styles.affinityBarFill, { backgroundColor: '#3b82f6', width: '60%' }]} />
             </View>
           </View>
+        </View>
+      </View>
+
+      {/* Sélection de la Musique de Menu */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Musique de Menu</Text>
+        <View style={styles.musicCard}>
+          {MENU_MUSIC_TRACKS.map((track) => {
+            const isUnlocked = unlockedMusicTracks.includes(track.id);
+            const isSelected = selectedMenuMusic === track.id;
+
+            if (!isUnlocked) return null;
+
+            return (
+              <TouchableOpacity
+                key={track.id}
+                style={[styles.musicTrackItem, isSelected && styles.musicTrackItemSelected]}
+                onPress={() => setMenuMusic(track.id)}
+              >
+                <View style={styles.musicTrackTextContainer}>
+                  <Text style={[styles.musicTrackName, isSelected ? styles.musicTrackNameSelected : styles.musicTrackNameNormal]}>
+                    🎵 {track.name}
+                  </Text>
+                  <Text style={styles.musicTrackTheme}>{track.theme}</Text>
+                </View>
+                {isSelected && (
+                  <SymbolView name="checkmark.circle.fill" tintColor="#3b82f6" size={18} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
@@ -757,5 +791,45 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: Platform.OS === 'ios' ? 42 : undefined,
     includeFontPadding: false,
+  },
+  musicCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#334155',
+    padding: 8,
+    gap: 8,
+  },
+  musicTrackItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#0f172a',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  musicTrackItemSelected: {
+    borderColor: '#3b82f6',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  },
+  musicTrackTextContainer: {
+    flex: 1,
+  },
+  musicTrackName: {
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  musicTrackNameSelected: {
+    color: '#3b82f6',
+  },
+  musicTrackNameNormal: {
+    color: '#fff',
+  },
+  musicTrackTheme: {
+    color: '#64748b',
+    fontSize: 10,
+    marginTop: 2,
   },
 });

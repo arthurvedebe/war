@@ -13,15 +13,24 @@ import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
-  const setupPhase = useGameStore((state) => state.setupPhase);
+  const isCombat = useGameStore((state) => state.setupPhase === 'playing');
   const selectedMenuMusic = useGameStore((state) => state.selectedMenuMusic);
+  const activePreviewTrackId = useGameStore((state) => state.activePreviewTrackId);
   const soundRef = useRef<Audio.Sound | null>(null);
   // Track the currently-loaded music key to avoid unnecessary reloads
   const currentMusicKeyRef = useRef<string>('');
 
-  // Only switch music when the combat/menu boundary changes OR when menu music selection changes
-  const isCombat = setupPhase === 'playing';
   const musicKey = isCombat ? 'combat' : selectedMenuMusic;
+
+  // Gérer la mise en pause/lecture de la musique de fond lors d'une préécoute
+  useEffect(() => {
+    if (!soundRef.current) return;
+    if (activePreviewTrackId !== null) {
+      soundRef.current.pauseAsync().catch(() => {});
+    } else {
+      soundRef.current.playAsync().catch(() => {});
+    }
+  }, [activePreviewTrackId]);
 
   useEffect(() => {
     // Skip if the same music is already loaded
@@ -72,7 +81,12 @@ export default function TabLayout() {
         await sound.loadAsync(musicSource, { isLooping: true, volume: 0.4 });
         soundRef.current = sound;
         if (active) {
-          await sound.playAsync();
+          // Si on est en train de préécouter une musique dans la boutique, on ne lance pas la musique de fond tout de suite
+          if (useGameStore.getState().activePreviewTrackId !== null) {
+            await sound.pauseAsync();
+          } else {
+            await sound.playAsync();
+          }
         }
       } catch (e) {
         console.log('Load sound error', e);

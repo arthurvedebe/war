@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,8 +9,10 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { useGameStore, getAvatarSource, getSkinSource } from '../../src/store/gameStore';
+import { useGameStore, getAvatarSource, getSkinSource, MENU_MUSIC_TRACKS } from '../../src/store/gameStore';
 import { Skin, Unit } from '../../src/types';
+import { useFocusEffect } from 'expo-router';
+import { Audio } from 'expo-av';
 
 const SHOP_TITLES = [
   { id: 'title_gladiator', name: 'Gladiateur Cybernétique', cost: 80 },
@@ -40,16 +42,39 @@ export default function ShopScreen() {
     units,
     unlockedTitles,
     unlockedIcons,
+    unlockedMusicTracks,
+    selectedMenuMusic,
+    activePreviewTrackId,
     buySkin,
     equipSkin,
     buyTitle,
-    buyIcon
+    buyIcon,
+    buyMusic,
+    setMenuMusic,
+    setActivePreviewTrackId,
   } = useGameStore();
 
   // États pour les modals et notifications
-  const [activeTab, setActiveTab] = useState<'skins' | 'titles' | 'icons'>('skins');
+  const [activeTab, setActiveTab] = useState<'skins' | 'titles' | 'icons' | 'music'>('skins');
   const [selectedSkinForEquip, setSelectedSkinForEquip] = useState<Skin | null>(null);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [playingPreviewId, setPlayingPreviewId] = useState<string | null>(null);
+  const previewSoundRef = useRef<Audio.Sound | null>(null);
+
+  // Stopper la préécoute et rétablir la musique de fond quand on quitte l'onglet
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setActivePreviewTrackId(null);
+        setPlayingPreviewId(null);
+        if (previewSoundRef.current) {
+          previewSoundRef.current.stopAsync().catch(() => {});
+          previewSoundRef.current.unloadAsync().catch(() => {});
+          previewSoundRef.current = null;
+        }
+      };
+    }, [])
+  );
 
   // Affiche une notification temporaire
   const triggerNotification = (text: string, type: 'success' | 'error') => {
@@ -111,6 +136,73 @@ export default function ShopScreen() {
     }
   };
 
+  const handlePreviewMusic = async (trackId: string) => {
+    try {
+      if (previewSoundRef.current) {
+        await previewSoundRef.current.stopAsync();
+        await previewSoundRef.current.unloadAsync();
+        previewSoundRef.current = null;
+      }
+
+      if (playingPreviewId === trackId) {
+        setPlayingPreviewId(null);
+        setActivePreviewTrackId(null);
+        return;
+      }
+
+      let musicSource: number;
+      switch (trackId) {
+        case 'menu_ancient':
+          musicSource = require('../../assets/audio/music_menu_ancient.mp3');
+          break;
+        case 'menu_space':
+          musicSource = require('../../assets/audio/music_menu_space.mp3');
+          break;
+        case 'menu_tribal':
+          musicSource = require('../../assets/audio/music_menu_tribal.mp3');
+          break;
+        default:
+          musicSource = require('../../assets/audio/menu_music.mp3');
+      }
+
+      setActivePreviewTrackId(trackId);
+      setPlayingPreviewId(trackId);
+
+      const sound = new Audio.Sound();
+      await sound.loadAsync(musicSource, { isLooping: false, volume: 0.5 });
+      previewSoundRef.current = sound;
+      
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          setPlayingPreviewId(null);
+          setActivePreviewTrackId(null);
+          sound.unloadAsync().catch(() => {});
+          if (previewSoundRef.current === sound) {
+            previewSoundRef.current = null;
+          }
+        }
+      });
+
+      await sound.playAsync();
+    } catch (e) {
+      console.log('Error during preview', e);
+      triggerNotification("Impossible de lancer la préécoute 🎵", 'error');
+    }
+  };
+
+  const handleBuyMusic = (music: { id: string; name: string; cost: number }) => {
+    if (gold < music.cost) {
+      triggerNotification("Or insuffisant pour débloquer cette musique ! 🪙", 'error');
+      return;
+    }
+    const success = buyMusic(music.id, music.cost);
+    if (success) {
+      triggerNotification(`Musique "${music.name}" débloquée ! 🎵`, 'success');
+    } else {
+      triggerNotification("Une erreur est survenue lors de l'achat.", 'error');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* En-tête du Shop */}
@@ -130,6 +222,7 @@ export default function ShopScreen() {
           { key: 'skins', label: '⚔️ PIONS' },
           { key: 'titles', label: '🏷️ TITRES' },
           { key: 'icons', label: '🎭 ICÔNES' },
+          { key: 'music', label: '🎵 MUSIQUE' },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.key}
@@ -265,6 +358,52 @@ export default function ShopScreen() {
                         <View style={styles.buyButtonContainer}>
                           <Image source={require('../../assets/images/gold_coin.png')} style={styles.buttonGoldIcon} />
                           <Text style={styles.buyButtonText}>{icon.cost}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Liste des musiques */}
+        {activeTab === 'music' && (
+          <View style={styles.titlesList}>
+            {MENU_MUSIC_TRACKS.map((track) => {
+              const isUnlocked = unlockedMusicTracks.includes(track.id);
+              const isPlaying = playingPreviewId === track.id;
+              
+              return (
+                <View key={track.id} style={[styles.titleCard, isUnlocked && styles.itemCardUnlocked]}>
+                  <View style={styles.titleInfo}>
+                    <Text style={styles.titleNameText}>{track.name}</Text>
+                    <Text style={styles.titleSubtitleText}>{track.theme}</Text>
+                  </View>
+                  
+                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    <TouchableOpacity
+                      style={[styles.previewButton, isPlaying && styles.previewButtonPlaying]}
+                      onPress={() => handlePreviewMusic(track.id)}
+                    >
+                      <Text style={styles.previewButtonText}>
+                        {isPlaying ? '⏹️ Stop' : '▶️ Écouter'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {isUnlocked ? (
+                      <View style={styles.ownedBadge}>
+                        <Text style={styles.ownedBadgeText}>Possédée</Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.buyItemButton}
+                        onPress={() => handleBuyMusic(track)}
+                      >
+                        <View style={styles.buyItemButtonContainer}>
+                          <Image source={require('../../assets/images/gold_coin.png')} style={styles.buttonGoldIcon} />
+                          <Text style={styles.buyItemButtonText}>{track.cost}</Text>
                         </View>
                       </TouchableOpacity>
                     )}
@@ -711,5 +850,24 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
+  },
+  previewButton: {
+    backgroundColor: '#3b82f6',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#60a5fa',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewButtonPlaying: {
+    backgroundColor: '#ef4444',
+    borderColor: '#fca5a5',
+  },
+  previewButtonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
   },
 });
