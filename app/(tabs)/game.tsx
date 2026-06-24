@@ -1138,9 +1138,9 @@ function TacticalUnit({
   // Utiliser une taille d'avatar proportionnelle à la hauteur de la case
   const radius = cellHeight * 0.35;
 
-  // Charger le skin image
+  // Charger le skin image (soit le custom skin, soit le skin par défaut spécifique à l'unité)
   const isCustomSkin = unit.skin && unit.skin.id !== 'skin-default';
-  const skinSource = isCustomSkin ? getSkinSource(unit.skin.id) : require('../../assets/images/techno_avatar.png');
+  const skinSource = isCustomSkin ? getSkinSource(unit.skin.id) : getUnitSkinSource(unit.factionId, unit.unitType);
   const skinImage = useImage(skinSource);
 
   const transform = useDerivedValue(() => {
@@ -1287,10 +1287,9 @@ function TacticalUnit({
       {unit.skin && unit.skin.particleLevel >= 4 && <Circle cx={px4} cy={py4} r={1.6} color={unit.skin.id === 'skin-neon' ? '#22d3ee' : '#ec4899'} />}
       {unit.skin && unit.skin.particleLevel >= 5 && <Circle cx={px5} cy={py5} r={1.6} color={unit.skin.id === 'skin-neon' ? '#22d3ee' : '#ec4899'} />}
 
-      {/* Corps principal : Forme spécifique avec dégradé et watermark */}
+      {/* Corps principal : Forme spécifique avec image de skin et overlay d'alliance */}
       <Group clip={shapePath}>
-        {/* Remplissage dégradé ou image de skin IA */}
-        {isCustomSkin && skinImage ? (
+        {skinImage ? (
           <Group>
             <SkiaImage
               image={skinImage}
@@ -1300,8 +1299,8 @@ function TacticalUnit({
               height={radius * 2}
               fit="cover"
             />
-            {/* Overlay d'alliance translucide */}
-            <Path path={shapePath} color={allianceColor} opacity={0.12} />
+            {/* Overlay d'alliance translucide pour distinguer les camps */}
+            <Path path={shapePath} color={allianceColor} opacity={0.15} />
           </Group>
         ) : (
           <Path path={shapePath}>
@@ -1311,20 +1310,6 @@ function TacticalUnit({
               colors={gradientColors}
             />
           </Path>
-        )}
-
-        {/* Filigrane d'avatar de faction en arrière-plan à opacité réduite (uniquement skin de base) */}
-        {!isCustomSkin && activeSprite && (
-          <Group opacity={0.25}>
-            <SkiaImage
-              image={activeSprite}
-              x={-radius}
-              y={-radius}
-              width={radius * 2}
-              height={radius * 2}
-              fit="cover"
-            />
-          </Group>
         )}
       </Group>
 
